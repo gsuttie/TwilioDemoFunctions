@@ -15,6 +15,7 @@ namespace PXDemoFunctions
             string[] numbers = null;
             string callinfoAfterCall = null;
             string answeredCallTaskResult = null;
+            bool callAnswered = false;
 
             // ***************************** STEP 1 - get the phone numbers from storage* *****************************************
 
@@ -50,19 +51,21 @@ namespace PXDemoFunctions
                 if (winner == answeredCallTask)
                 {
                     log.LogWarning($"Call answered at {ctx.CurrentUtcDateTime}");
+                    callAnswered = true;
 
                     answeredCallTaskResult = answeredCallTask.Result;
                     cts.Cancel();
                 }
                 else
                 {
+                    callAnswered = false;
                     answeredCallTaskResult = "Timed Out";
                 }
             }
 
             return new
             {
-                blah = "blah"
+                CallAnswered = callAnswered
             };
         }
     }

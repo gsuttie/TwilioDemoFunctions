@@ -83,7 +83,7 @@ namespace PXDemoFunctions
             };
 
             //return myCallinfo;
-            return "test";
+            return "MakeCall completed";
         }
     }
 }
