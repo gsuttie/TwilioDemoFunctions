@@ -44,7 +44,7 @@ namespace PXDemoFunctions
             {
                 var timeout = ctx.CurrentUtcDateTime.AddSeconds(60);
                 var timeoutTask = ctx.CreateTimer(timeout, cts.Token);
-                var answeredCallTask = ctx.WaitForExternalEvent<string>("AnsweredCallResult", TimeSpan.FromSeconds(30), cts.Token);
+                var answeredCallTask = ctx.WaitForExternalEvent<string>("AnsweredCallResult", TimeSpan.FromSeconds(300), cts.Token);
 
                 var winner = await Task.WhenAny(answeredCallTask, timeoutTask);
                 if (winner == answeredCallTask)
