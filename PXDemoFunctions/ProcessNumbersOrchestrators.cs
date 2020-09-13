@@ -10,63 +10,77 @@ namespace PXDemoFunctions
     public static class ProcessNumbersOrchestrators
     {
         [FunctionName("O_ProcessNumbers")]
-        public static async Task<object> ProcessNumbers([OrchestrationTrigger] IDurableOrchestrationContext ctx, ILogger log)
+        public static async Task<object> ProcessNumbers([OrchestrationTrigger] 
+        IDurableOrchestrationContext ctx, ILogger log)
         {
             string[] numbers = null;
             string callinfoAfterCall = null;
             string answeredCallTaskResult = null;
             bool callAnswered = false;
-
-            // ***************************** STEP 1 - get the phone numbers from storage* *****************************************
-
-            if (!ctx.IsReplaying) 
-            { 
-                log.LogWarning("About to call A_GetNumbersFromStorage activity");
-            }
-
-            // Get the number from storage
-            numbers = await ctx.CallActivityAsync<string[]>("A_GetNumbersFromStorage", null);
-
-            CallInfo callinfo = new CallInfo
+            
+            try 
             {
-                InstanceId = ctx.InstanceId,
-                Numbers = numbers
-            };
+                // ***************************** STEP 1 - get the phone numbers from storage* *****************************************
 
-            // ***************************** STEP 2 - Attempt to make a call ******************************************
-            if (!ctx.IsReplaying)
-            {
-                log.LogWarning("About to call A_MakeCall activity");
-            }
-
-            callinfoAfterCall = await ctx.CallActivityAsync<string>("A_MakeCall", callinfo);
-
-            using (var cts = new CancellationTokenSource())
-            {
-                var timeout = ctx.CurrentUtcDateTime.AddSeconds(60);
-                var timeoutTask = ctx.CreateTimer(timeout, cts.Token);
-                var answeredCallTask = ctx.WaitForExternalEvent<string>("AnsweredCallResult", TimeSpan.FromSeconds(300), cts.Token);
-
-                var winner = await Task.WhenAny(answeredCallTask, timeoutTask);
-                if (winner == answeredCallTask)
-                {
-                    log.LogWarning($"Call answered at {ctx.CurrentUtcDateTime}");
-                    callAnswered = true;
-
-                    answeredCallTaskResult = answeredCallTask.Result;
-                    cts.Cancel();
+                if (!ctx.IsReplaying) 
+                { 
+                    log.LogWarning("About to call A_GetNumbersFromStorage activity");
                 }
-                else
-                {
-                    callAnswered = false;
-                    answeredCallTaskResult = "Timed Out";
-                }
-            }
 
-            return new
+                // Get the number from storage
+                numbers = await ctx.CallActivityAsync<string[]>("A_GetNumbersFromStorage", null);
+
+                CallInfo callinfo = new CallInfo
+                {
+                    InstanceId = ctx.InstanceId,
+                    Numbers = numbers
+                };
+
+                // ***************************** STEP 2 - Attempt to make a call ******************************************
+                if (!ctx.IsReplaying)
+                {
+                    log.LogWarning("About to call A_MakeCall activity");
+                }
+
+                callinfoAfterCall = await ctx.CallActivityAsync<string>("A_MakeCall", callinfo);
+
+                using (var cts = new CancellationTokenSource())
+                {
+                    var timeout = ctx.CurrentUtcDateTime.AddSeconds(60);
+                    var timeoutTask = ctx.CreateTimer(timeout, cts.Token);
+                    var answeredCallTask = ctx.WaitForExternalEvent<string>("AnsweredCallResult", TimeSpan.FromSeconds(60), cts.Token);
+
+                    var winner = await Task.WhenAny(answeredCallTask, timeoutTask);
+                    if (winner == answeredCallTask)
+                    {
+                        log.LogWarning($"Call answered at {ctx.CurrentUtcDateTime}");
+                        callAnswered = true;
+
+                        answeredCallTaskResult = answeredCallTask.Result;
+                        cts.Cancel();
+                    }
+                    else
+                    {
+                        callAnswered = false;
+                        answeredCallTaskResult = "Timed Out";
+                    }
+                }
+
+                return new
+                {
+                    CallAnswered = callAnswered,
+                    Success = true
+                };
+            }
+            catch(Exception e)
             {
-                CallAnswered = callAnswered
-            };
+                // Log Exception, pefrom any cleanup
+                return new
+                {
+                    Success = false,
+                    Error = e.Message
+                };
+            }
         }
     }
 }

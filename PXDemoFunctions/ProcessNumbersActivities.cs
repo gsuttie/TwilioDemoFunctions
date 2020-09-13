@@ -3,6 +3,7 @@ using Microsoft.Azure.Storage.Blob;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using PXDemoFunctionsLatest;
 using System;
 using System.Threading.Tasks;
 using Twilio;
@@ -45,15 +46,23 @@ namespace PXDemoFunctions
         }
 
         [FunctionName("A_MakeCall")]
-        public static async Task<string> MakeCall([ActivityTrigger] CallInfo callInfo, ILogger log)
+        public static string MakeCall([ActivityTrigger] CallInfo callInfo, 
+            [Table("MadeCalls", "AzureWebJobStorage")] out CallDetails calldetails,
+            ILogger log)
         {
             log.LogWarning($"MakeCall {callInfo.Numbers}");
+
+            var madeCallId = Guid.NewGuid().ToString("N");
+            calldetails = new CallDetails
+            {
+                PartitionKey = "MadeCalls",
+                RowKey = madeCallId,
+                OrchestrationId = callInfo.InstanceId
+            };
 
             string accountSid = Environment.GetEnvironmentVariable("accountSid");
             string authToken = Environment.GetEnvironmentVariable("authToken");
             TwilioClient.Init(accountSid, authToken);
-
-            var myfileURI = new Uri("https://github.com/gsuttie/TwilioAzurefunctions/blob/master/message.xml");
 
             // ***********************************************************************************************************
             //TODO figure out how best to call this and loop thru the numbers instead of hardcoding the first number below
@@ -75,15 +84,7 @@ namespace PXDemoFunctions
                 statusCallback: statusCallbackUri,
                 statusCallbackMethod: Twilio.Http.HttpMethod.Post);
 
-            await Task.Delay(100);
-
-            CallInfo myCallinfo = new CallInfo
-            {
-                Sid = call.Sid
-            };
-
-            //return myCallinfo;
-            return "MakeCall completed";
+            return string.Empty;
         }
     }
 }

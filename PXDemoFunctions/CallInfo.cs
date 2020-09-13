@@ -14,5 +14,7 @@ namespace PXDemoFunctions
         public string[] Numbers { get; set; } // e.g. +440123456, +4498765432
 
         public string InstanceId { get; set; }
+
+        public string NumberCalled { get; set; }
     }
 }
