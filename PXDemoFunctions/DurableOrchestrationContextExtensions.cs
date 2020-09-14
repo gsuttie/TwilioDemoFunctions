@@ -6,11 +6,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.WebJobs;
 
 namespace PXDemoFunctionsLatest
 {
     public static class DurableOrchestrationContextExtensions
     {
+        [FunctionName("O_CallNumberAsync")]
         public static async Task<bool> CallNumberAsync(this IDurableOrchestrationContext context, string number, ILogger log, int attempts = 3)
         {
             log.LogWarning("Calling MEthod CallNumberAsync in DurableOrchestrationContextExtensions");

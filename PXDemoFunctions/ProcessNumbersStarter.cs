@@ -38,6 +38,8 @@ namespace PXDemoFunctions
 
             var orchestrationId = await starter.StartNewAsync("O_ProcessNumbers", null, number);
 
+            //var orchestrationId2 = await starter.StartNewAsync("O_CallNumberAsync", null, number);
+
             return starter.CreateCheckStatusResponse(req, orchestrationId);
         }
     }

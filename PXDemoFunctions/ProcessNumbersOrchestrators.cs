@@ -69,7 +69,8 @@ namespace PXDemoFunctions
                 return new
                 {
                     CallAnswered = callAnswered,
-                    Success = true
+                    Success = true,
+                    OrchestrationId = ctx.InstanceId
                 };
             }
             catch(Exception e)
