@@ -1,7 +1,6 @@
 ﻿using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +41,19 @@ namespace PXDemoFunctions
                     log.LogWarning("About to call A_MakeCall activity");
                 }
 
+
+                // Attempt to call the numbers retrieved from storage
+                ////foreach (var number in numbers)
+                ////{
+                ////    var done = false;
+                ////    done = await ctx.CallNumberAsync(number, log);
+
+                ////    if (done)
+                ////    {
+                ////        break;
+                ////    }
+                ////}
+
                 callinfoAfterCall = await ctx.CallActivityAsync<string>("A_MakeCall", callinfo);
 
                 using (var cts = new CancellationTokenSource())
@@ -73,7 +85,7 @@ namespace PXDemoFunctions
                     OrchestrationId = ctx.InstanceId
                 };
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 // Log Exception, pefrom any cleanup
                 return new

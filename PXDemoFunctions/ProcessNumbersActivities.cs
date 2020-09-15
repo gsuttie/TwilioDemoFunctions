@@ -5,6 +5,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using PXDemoFunctionsLatest;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
@@ -42,7 +43,10 @@ namespace PXDemoFunctions
 
             await Task.Delay(100);
 
-            return numbers;
+            // TODO remove hardcoded numbers only using for testing purposes
+            return new string[] { "+447712892801", "+447833327059" };
+            //return new string[] { "+447712892801" };
+            //return numbers;
         }
 
         [FunctionName("A_MakeCall")]
@@ -53,6 +57,7 @@ namespace PXDemoFunctions
             log.LogWarning($"MakeCall {callInfo.Numbers}");
 
             var madeCallId = Guid.NewGuid().ToString("N");
+
             calldetails = new CallDetails
             {
                 PartitionKey = "MadeCalls",
@@ -69,22 +74,31 @@ namespace PXDemoFunctions
             // ***********************************************************************************************************
 
             var to = new PhoneNumber(callInfo.Numbers[0]);
+            //var to = new PhoneNumber(callInfo.NumberCalled);
+
             var from = new PhoneNumber(Environment.GetEnvironmentVariable("twilioDemoNumber"));
 
             log.LogWarning($"InstanceId {callInfo.InstanceId}");
 
+            //var statusCallbackUri = new Uri(string.Format(Environment.GetEnvironmentVariable("statusCallBackUrl"), madeCallId));
             var statusCallbackUri = new Uri(string.Format(Environment.GetEnvironmentVariable("statusCallBackUrl"), callInfo.InstanceId));
 
             log.LogWarning($"statusCallbackUri {statusCallbackUri}");
+
+            var statusCallbackEvent = new List<string> { "answered" };
+
+            log.LogWarning($"About to make a call to  {to} from {from}.");
+
 
             var call = CallResource.Create(
                 to,
                 from,
                 url: new Uri("http://demo.twilio.com/docs/voice.xml"),
                 statusCallback: statusCallbackUri,
-                statusCallbackMethod: Twilio.Http.HttpMethod.Post);
+                statusCallbackMethod: Twilio.Http.HttpMethod.Post,
+                statusCallbackEvent: statusCallbackEvent);
 
-            return string.Empty;
+            return madeCallId;
         }
     }
 }

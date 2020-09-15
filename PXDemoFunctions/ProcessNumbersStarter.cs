@@ -27,18 +27,13 @@ namespace PXDemoFunctions
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             number = number ?? data?.number;
 
-            if (number == null)
-            {
-                string responseMessage = string.IsNullOrEmpty(number)
-                ? "This HTTP triggered function executed successfully. Pass a number in the query string or in the request body for a personalized response."
+            string responseMessage = string.IsNullOrEmpty(number)
+                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
                 : $"Hello, {number}. This HTTP triggered function executed successfully.";
-            }
 
             log.LogInformation($"About to start orchestration for {number}");
 
             var orchestrationId = await starter.StartNewAsync("O_ProcessNumbers", null, number);
-
-            //var orchestrationId2 = await starter.StartNewAsync("O_CallNumberAsync", null, number);
 
             return starter.CreateCheckStatusResponse(req, orchestrationId);
         }
